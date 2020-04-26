@@ -25,41 +25,36 @@ var usuario = {
 // Manejar evento de conexion al socket
 socket.on('connect', function() {
     //confirmar en consola la conexion establecida 
-    console.log('Servidor: ON-LINE');
+    //console.log('Servidor: ON-LINE');
 
     //anunciar entrada de usuario con evento 'entrarChat' y pasar datos del usuario
     socket.emit('entrarChat', usuario, (resp) => {
-
+        // renderizar listado general de usuarios en pagina chat.html
+        renderizarUsuarios(resp);
     });
-});
 
-//capturar perdida de conexion con el servidor de esta manera
-socket.on('disconnect', function() {
-    //confirmar en consola la conexion perdida 
-    console.log('Servidor: OFF-LINE');
-});
+    //capturar perdida de conexion con el servidor de esta manera
+    socket.on('disconnect', function() {
+        //confirmar en consola la conexion perdida 
+        //console.log('Servidor: OFF-LINE');
+    });
 
-// //activar evento 'enviarMensaje'
-// socket.emit('crearMensaje', {
-//     usuario: '',
-//     mensaje: 'Hola Mundo'
-//         // capturar 'resp' que es enviada por el servidor luego de recibir este mensaje
-// }, function(resp) {
-//     console.log(resp);
-// });
+    // Escuchar evento 'crearMensaje' activado con mensajes nuevos
+    socket.on('crearMensaje', (mensaje) => {
+        //llamar funcion que renderiza la pantalla de mensajes html
+        renderizarMensajes(mensaje, false);
+        scrollBottom();
+    });
 
-// Escuchar evento 'crearMensaje'
-socket.on('crearMensaje', (mensaje) => {
-    console.log('Mensaje recibido:', mensaje);
-});
+    //escuchar envento que anuncia cambios en colecion de usuarios conectados
+    //cuando un usuario entra o sale del chat
+    socket.on('listaPersona', function(resp) {
+        // renderizar listado general de usuarios en pagina chat.html
+        renderizarUsuarios(resp);
+    });
 
-//escuchar envento que anuncia cambios en colecion de usuarios conectados
-//cuando un usuario entra o sale del chat
-socket.on('listaPersona', function(resp) {
-    console.log(resp);
-});
-
-//escuchar evento pararecibir mensaje privado
-socket.on('mensajePrivado', (mensaje) => {
-    console.log('Mensaje Privado:', mensaje);
+    //escuchar evento pararecibir mensaje privado
+    socket.on('mensajePrivado', (mensaje) => {
+        console.log('Mensaje Privado:', mensaje);
+    });
 });

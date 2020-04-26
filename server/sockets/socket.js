@@ -34,31 +34,42 @@ io.on('connection', (client) => {
         //.join() se ejecuta a nivel de sockets , no de la logica de nuestra app
         client.join(usuario.sala);
 
-        //agregar el nuevo usuario a la coleccion de usuarios online ( clase Usuario)
-        let personas = usuarios.agregarPersona(client.id, usuario.nombre, usuario.sala);
+        //agregar el nuevo usuario a la coleccion general de usuarios online ( clase Usuario)
+        usuarios.agregarPersona(client.id, usuario.nombre, usuario.sala);
 
-        //activar evento que anuncia las personas conectadas 
-        client.broadcast.to(usuario.sala).emit('listaPersona', usuarios.getPersonasPorSala(usuario.sala));
+        //obtener listado de usuarios que estan en la sala del nuevo usuario
+        let personas = usuarios.getPersonasPorSala(usuario.sala);
 
-        //retornar todas las personas online
+        //activar evento que anuncia las personas conectadas filtrado por sala
+        client.broadcast.to(usuario.sala).emit('listaPersona', personas);
+        //anunciar que se conecto nuevo usuario
+        client.broadcast.to(usuario.sala).emit('crearMensaje', crearMensaje('Administrador', `${usuario.nombre} se unio al chat`));
+
+
+        //retornar todas las personas online filtradas por sala
         callback(personas);
     });
 
     //capturar evento 'crearMensaje'. EL mensaje del cliente se recibe en 'data'
-    client.on('crearMensaje', (data) => {
+    client.on('crearMensaje', (data, callback) => {
+
         //obtener el usuario que activo este evento mediante el id de su socket
         let persona = usuarios.getPersona(client.id);
 
         let mensaje = crearMensaje(persona.nombre, data.mensaje);
         client.broadcast.to(persona.sala).emit('crearMensaje', mensaje);
 
-    })
+        //validar emits con callback para evitar crash
+        if (!callback) return;
+        callback(mensaje);
+    });
 
     //capturar evento de desconexion de las instancias de sockets
     // esto evita duplicidad en nuestro registro de usuarios cuando se recarga el navegador
     client.on('disconnect', () => {
         //llamar funcion de que elimina de la clase Usuarios el se haya desconectado
         let personaBorrada = usuarios.borrarPersona(client.id);
+        if (!personaBorrada) return;
         //anunciar con evento 'crearMensaje' el usuario que se desconecto
         //.to() filtra el emit para la sala o el usuario que se indique
         client.broadcast.to(personaBorrada.sala).emit('crearMensaje', crearMensaje('Administrador', `${personaBorrada.nombre} salio del chat`));

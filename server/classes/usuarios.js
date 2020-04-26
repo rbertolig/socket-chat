@@ -42,7 +42,6 @@ class Usuarios {
         return personasEnSala;
     }
 
-
 }
 
 
