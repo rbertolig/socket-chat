@@ -77,10 +77,21 @@ io.on('connection', (client) => {
         client.broadcast.to(personaBorrada.sala).emit('listaPersona', usuarios.getPersonasPorSala(personaBorrada.sala));
     });
 
+    //Capturar evento: mensaje privado
     client.on('mensajePrivado', (data) => {
         if (!data) return;
         let persona = usuarios.getPersona(client.id);
         client.broadcast.to(data.para).emit('mensajePrivado', crearMensaje(persona.nombre, data.mensaje));
     });
+
+    // Capturar evento: 'buscarPersonas'
+    client.on('buscarPersonas', (txtFiltro, callback) => {
+        //llamar a funcion que filtra por sala y texto de busqueda
+        resp = usuarios.filtrarPesonasPorTexto(txtFiltro.filtro, txtFiltro.sala);
+        //devolver via callback el arreglo que contiene los usuarios filtrados por busqueda
+        callback(resp);
+    });
+
+
 
 });

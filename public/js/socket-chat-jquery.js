@@ -10,6 +10,8 @@ var divUsuarios = $('#divUsuarios'); // area con listado de usuarios online
 var formEnviar = $('#formEnviar'); // formulario para envio de mensaje,contiene txtMensaje y Boton Submit
 var txtMensaje = $('#txtMensaje'); // input box para escribir el mensaje
 var divChatbox = $('#divChatbox'); // area para mensajes enviados y recibidos
+var formBuscarUsuario = $('#formBuscarUsuario'); // Formulario para buscar usuario contiene txtBuscarUsuario
+var txtBuscarUsuario = $('#txtBuscarUsuario'); // area para buscar Usuario por su nombre
 
 //funciones para renderizar listado de usuarios en pagina html. 
 //Recibe un array con coleccion de usuarios del chat (personas)
@@ -98,6 +100,7 @@ function scrollBottom() {
     }
 }
 
+
 //==============================
 // listeners de jQuery
 //==============================
@@ -132,4 +135,28 @@ formEnviar.on('submit', function(event) { // 'e' es un evento a capturar
         renderizarMensajes(mensaje, true);
         scrollBottom();
     });
+});
+
+// capturar envio de mensaje con el'summit' del formulario buscarContacto
+formBuscarUsuario.on('submit', function(event) { // 'e' es un evento a capturar
+    //asegurar que cuando se haga summit se actualice la pagina con la nueva informacion
+    event.preventDefault();
+
+    //leer texto escrito en input box de busqueda
+    let txtFiltro = txtBuscarUsuario.val();
+
+    //anunciar evento 'buscarPersonas' con texto extraido del input box de busqueda
+    //y recibir respuesta del servidor con resultado de la busqueda
+    socket.emit('buscarPersonas', {
+        filtro: txtFiltro,
+        sala: sala
+    }, function(resp) {
+        //mostrar resultado de la busqueda en consola del navegador
+        console.log(resp);
+        //renderizar usuarios que coinciden con la busqueda
+        renderizarUsuarios(resp);
+    });
+
+
+
 });
